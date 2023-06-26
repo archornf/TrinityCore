@@ -258,8 +258,18 @@ GroupQueueInfo* BattlegroundQueue::AddGroup(Player* leader, Group* grp, Battlegr
     }
 
     //npcbot: try to queue wandering bots
-    if (!isRated && !ArenaType && !arenateamid && !sBattlegroundMgr->isTesting())
+    if (!isRated && !ArenaType && !arenateamid && !sBattlegroundMgr->isTesting() && !leader->GetGroup())
     {
+        if (!BotDataMgr::GenerateBattlegroundBots(leader, grp, this, bracketEntry, ginfo))
+        {
+            TC_LOG_WARN("npcbots", "Did NOT generate bots for BG %u for leader %s (%u members)",
+                BgTypeId, leader->GetDebugInfo().c_str(), grp ? grp->GetMembersCount() : 0u);
+        }
+    }
+    // HEHE: Arena:
+    else if (!isRated && ArenaType && !sBattlegroundMgr->isTesting() && !leader->GetGroup())
+    {
+        TC_LOG_INFO("server.loading", "Queueing wandering bots for arena! BgTypeId: %u", BgTypeId);
         if (!BotDataMgr::GenerateBattlegroundBots(leader, grp, this, bracketEntry, ginfo))
         {
             TC_LOG_WARN("npcbots", "Did NOT generate bots for BG %u for leader %s (%u members)",

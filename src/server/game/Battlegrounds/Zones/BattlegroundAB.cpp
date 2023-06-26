@@ -897,8 +897,10 @@ WorldSafeLocsEntry const* BattlegroundAB::GetClosestGraveyardForBot(WorldLocatio
 
 void BattlegroundAB::RewardKillScore(TeamId teamId, uint32 amount)
 {
+    // HEHE: Score
     // Score feature
     m_TeamScores[teamId] += amount;
+    m_TeamScores[teamId] += 20;
     if (m_TeamScores[teamId] > BG_AB_MAX_TEAM_SCORE)
         m_TeamScores[teamId] = BG_AB_MAX_TEAM_SCORE;
     UpdateWorldState(teamId == TEAM_ALLIANCE ? BG_AB_OP_RESOURCES_ALLY : BG_AB_OP_RESOURCES_HORDE, m_TeamScores[teamId]);
@@ -912,7 +914,7 @@ void BattlegroundAB::HandleBotKillPlayer(Creature* killer, Player* victim)
         return;
 
     Battleground::HandleBotKillPlayer(killer, victim);
-    //RewardKillScore(GetBotTeamId(killer->GetGUID()), BG_AB_TickPoints[1]);
+    RewardKillScore(GetBotTeamId(killer->GetGUID()), BG_AB_TickPoints[1]);
 }
 void BattlegroundAB::HandleBotKillBot(Creature* killer, Creature* victim)
 {
@@ -920,7 +922,7 @@ void BattlegroundAB::HandleBotKillBot(Creature* killer, Creature* victim)
         return;
 
     Battleground::HandleBotKillBot(killer, victim);
-    //RewardKillScore(GetBotTeamId(killer->GetGUID()), BG_AB_TickPoints[1]);
+    RewardKillScore(GetBotTeamId(killer->GetGUID()), BG_AB_TickPoints[1]);
 }
 void BattlegroundAB::HandlePlayerKillBot(Creature* victim, Player* killer)
 {
@@ -928,7 +930,7 @@ void BattlegroundAB::HandlePlayerKillBot(Creature* victim, Player* killer)
         return;
 
     Battleground::HandlePlayerKillBot(victim, killer);
-    //RewardKillScore(GetBotTeamId(killer->GetGUID()), BG_AB_TickPoints[1]);
+    RewardKillScore(GetBotTeamId(killer->GetGUID()), BG_AB_TickPoints[1]);
 }
 //end npcbot
 

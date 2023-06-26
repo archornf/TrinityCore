@@ -20,6 +20,10 @@
 #include "SpellMgr.h"
 #include "StringConvert.h"
 #include "WorldDatabase.h"
+
+// HEHE: filestream
+#include <fstream>
+
 /*
 Npc Bot Data Manager by Trickerer (onlysuffering@gmail.com)
 NpcBots DB Data management
@@ -156,6 +160,12 @@ void SpawnWandererBot(uint32 bot_id, WanderNode const* spawnLoc, NpcBotRegistry*
     TC_LOG_DEBUG("npcbots", "Spawning wandering bot: %s (%u) class %u race %u fac %u, location: mapId %u %s (%s)",
         bot_template.Name.c_str(), bot_id, uint32(bot_extras->bclass), uint32(bot_extras->race), bot_data->faction,
         spawnLoc->GetMapId(), spawnLoc->ToString().c_str(), spawnLoc->GetName().c_str());
+
+    // HEHE: Write position to file
+    std::ofstream outfile;
+    outfile.open("./wander_nodes_data/wander_nodes_all.txt", std::ios_base::app); // Append instead of overwrite
+    outfile << "Spawning wandering bot! Bot: " + std::to_string(bot_id) + ", WP: " + spawnLoc->ToString() + ", name: " + spawnLoc->GetName() + "\n";
+    outfile.close();
 
     Creature* bot = new Creature();
     if (!bot->LoadBotCreatureFromDB(0, map, true, true, bot_id, &spawnPos))
@@ -1351,7 +1361,8 @@ bool BotDataMgr::GenerateBattlegroundBots(Player const* groupLeader, [[maybe_unu
 
     uint32 tarteamplayers = BotMgr::GetBGTargetTeamPlayersCount(bgTypeId);
 
-    if (tarteamplayers == 0)
+    // HEHE: Allow arena skirmish
+    if (tarteamplayers == 0 && bgTypeId != 6)
     {
         TC_LOG_INFO("npcbots", "[Disabled] BG %u wandering bots generation is disabled (not implemented?)", uint32(bgTypeId));
         return true;
@@ -1403,8 +1414,17 @@ bool BotDataMgr::GenerateBattlegroundBots(Player const* groupLeader, [[maybe_unu
     uint32 needed_bots_count_a = (queued_players_a < tarteamplayers) ? (tarteamplayers - queued_players_a) : 0;
     uint32 needed_bots_count_h = (queued_players_h < tarteamplayers) ? (tarteamplayers - queued_players_h) : 0;
 
-    ASSERT(needed_bots_count_a <= maxteamplayers);
-    ASSERT(needed_bots_count_h <= maxteamplayers);
+    // HEHE: Fix amount of players (bots) in arena skirmish
+    if (bgTypeId == 6)
+    {
+        //avgteamplayers = atype;
+        needed_bots_count_a = atype - queued_players_a;
+        needed_bots_count_h = atype - queued_players_h;
+    }
+
+    // HEHE: Remove assert
+    //ASSERT(needed_bots_count_a <= maxteamplayers);
+    //ASSERT(needed_bots_count_h <= maxteamplayers);
 
     if (needed_bots_count_a + needed_bots_count_h == 0)
     {
@@ -1464,8 +1484,9 @@ bool BotDataMgr::GenerateBattlegroundBots(Player const* groupLeader, [[maybe_unu
         }
     }
 
-    ASSERT(uint32(spawned_bots_a.size()) == needed_bots_count_a);
-    ASSERT(uint32(spawned_bots_h.size()) == needed_bots_count_h);
+    // HEHE: Remove asserts
+    //ASSERT(uint32(spawned_bots_a.size()) == needed_bots_count_a);
+    //ASSERT(uint32(spawned_bots_h.size()) == needed_bots_count_h);
 
     botBGJoinEvents[groupLeader->GetGUID()].AddEventAtOffset([ammr = ammr, atype = atype, bgqTypeId = bgqTypeId, bgTypeId = bgTypeId, bracketId = bracketId]() {
         sBattlegroundMgr->ScheduleQueueUpdate(ammr, atype, bgqTypeId, bgTypeId, bracketId);
@@ -1483,7 +1504,11 @@ bool BotDataMgr::GenerateBattlegroundBots(Player const* groupLeader, [[maybe_unu
             queue->AddBotAsGroup(bot->GetGUID(), GetTeamIdForFaction(bot->GetFaction()) == TEAM_HORDE ? HORDE : ALLIANCE,
                 bgTypeId, bracketEntry, atype, false, gqinfo->ArenaTeamRating, ammr);
 
-            seconds_delay += std::max<uint32>(1u, uint32((MINUTE / 2) / std::min<uint32>(needed_bots_count_a, needed_bots_count_h)));
+            // HEHE: Fix bots in arena queueing slowly...
+            if (bgTypeId == 6)
+                seconds_delay += std::max<uint32>(1u, uint32((MINUTE / 4) / std::min<uint32>(needed_bots_count_a, needed_bots_count_h)));
+            else
+                seconds_delay += std::max<uint32>(1u, uint32((MINUTE / 2) / std::min<uint32>(needed_bots_count_a, needed_bots_count_h)));
 
             BotBattlegroundEnterEvent* bbe = new BotBattlegroundEnterEvent(groupLeader->GetGUID(), bot->GetGUID(), bgqTypeId,
                 botBGJoinEvents[groupLeader->GetGUID()].CalculateTime(Milliseconds(uint32(INVITE_ACCEPT_WAIT_TIME) + uint32(BG_START_DELAY_2M))).count());

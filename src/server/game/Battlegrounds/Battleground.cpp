@@ -1512,6 +1512,10 @@ bool Battleground::UpdatePlayerScore(Player* player, uint32 type, uint32 value, 
     else
         itr->second->UpdateScore(type, value);
 
+    // HEHE: player score:
+    //if (type == SCORE_KILLING_BLOWS)
+    //	LOG_INFO("server.loading", "NEW PLAYER KILL!");
+
     return true;
 }
 
@@ -1523,6 +1527,11 @@ bool Battleground::UpdateBotScore(Creature const* bot, uint32 type, uint32 value
         return false;
 
     itr->second->UpdateScore(type, value);
+
+    // HEHE: player score:
+    //if (type == SCORE_KILLING_BLOWS)
+    //	LOG_INFO("server.loading", "NEW BOT KILL!");
+
     return true;
 }
 //end npcbot
