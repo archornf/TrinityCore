@@ -3647,7 +3647,7 @@ INSERT INTO `creature_template_npcbot_wander_nodes`(`id`,`name`,`mapid`,`zoneid`
 -- Two new Blade's edge nodes
 DELETE FROM `creature_template_npcbot_wander_nodes` WHERE `id` IN (3354, 3355);
 INSERT INTO `creature_template_npcbot_wander_nodes`(`id`,`name`,`mapid`,`zoneid`,`areaid`,`minlevel`,`maxlevel`,`flags`,`x`,`y`,`z`,`o`,`links`) VALUES
-(3354,'BladesEdgeMountains3',530,3522,3522,65,68,0,1261.32,6003.13,169.62,2.3,'2614:0 2615:0 '),
+(3354,'BladesEdgeMountains3',530,3522,3522,65,68,0,1565.86,6055.12,125.95,3.1,'2614:0 2615:0 '),
 (3355,'BladesEdgeMountains4',530,3522,3522,65,68,0,1258.11,6976.70,87.53,3.50,'2647:0 2648:0 ');
 -- Update existing links:
 UPDATE `creature_template_npcbot_wander_nodes` SET `links`='2613:0 3354:0 ' WHERE (`id`='2614');
