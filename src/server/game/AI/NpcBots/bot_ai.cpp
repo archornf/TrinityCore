@@ -14363,6 +14363,8 @@ void bot_ai::InitEquips()
                 {
                     if (Rand() < 20 && proto->ItemLevel < 245)
                         return false;
+                    if (Rand() < 10 && proto->ItemLevel < 264)
+                        return false;
 
                     switch (lslot)
                     {
@@ -14743,7 +14745,10 @@ void bot_ai::InitEquips()
         if (_equips[i] == nullptr && einfo->ItemEntry[i] != 0)
         {
             if (i == BOT_SLOT_OFFHAND && !_canUseOffHand())
+            {
+                me->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + i, uint32(0));
                 continue;
+            }
 
             //if bot has no equips but equip template then use those
             Item* item = Item::CreateItem(einfo->ItemEntry[i], 1, nullptr);
@@ -15368,8 +15373,10 @@ void bot_ai::KilledUnit(Unit* u)
             else if (u->IsNPCBot())
                 bg->HandleBotKillBot(me, u->ToCreature());
         }
-        else if (u->GetTypeId() == TYPEID_UNIT && !u->IsNPCBotOrPet())
+        else if (bg && u->GetTypeId() == TYPEID_UNIT && !u->IsNPCBotOrPet())
             bg->HandleBotKillUnit(me, u->ToCreature());
+
+        outdoorsTimer = 0;
     }
 
     if (u->isType(TYPEMASK_PLAYER))
@@ -17542,6 +17549,8 @@ void bot_ai::UpdateReviveTimer(uint32 diff)
 
             if (IsWanderer())
             {
+                outdoorsTimer = 0;
+
                 Position safePos;
                 if (me->GetMap()->GetEntry()->IsContinent())
                 {
@@ -17632,12 +17641,28 @@ void bot_ai::Evade()
 
     if (IsWanderer())
     {
+        // HEHE: fix blade's edge
+        uint32 curr_zone, curr_area;
+        me->GetZoneAndAreaId(curr_zone, curr_area);
         if (mapid != me->GetMap()->GetId() || _evadeCount >= 50 || me->GetExactDist2d(pos) > MAX_WANDER_NODE_DISTANCE ||
-            me->GetPositionZ() <= INVALID_HEIGHT || (me->GetExactDist2d(pos) < 20.0f && me->GetExactDist(pos) > 100.0f))
+            me->GetPositionZ() <= INVALID_HEIGHT || (me->GetExactDist2d(pos) < 20.0f && me->GetExactDist(pos) > 100.0f)
+            // HEHE: fix blade's edge
+            || (curr_zone == 3522 && me->GetPositionZ() > 310))
         {
-            TC_LOG_DEBUG("npcbots", "Bot %s id %u class %u level %u map %u TELEPORTING to node %u ('%s') map %u, %s, dist %.1f yd!",
-                me->GetName().c_str(), me->GetEntry(), uint32(_botclass), uint32(me->GetLevel()), me->GetMapId(), _travel_node_cur->GetWPId(),
-                _travel_node_cur->GetName().c_str(), uint32(mapid), pos.ToString().c_str(), me->GetExactDist(pos));
+            if ((curr_zone == 3522 && me->GetPositionZ() > 310))
+            {
+                TC_LOG_ERROR("npcbots", "BLADE'S EDGE BUG! Bot %s id %u class %u level %u map %u TELEPORTING to node %u ('%s') map %u, %s, dist %.1f yd!",
+                    me->GetName().c_str(), me->GetEntry(), uint32(_botclass), uint32(me->GetLevel()), me->GetMapId(), _travel_node_cur->GetWPId(),
+                    _travel_node_cur->GetName().c_str(), uint32(mapid), pos.ToString().c_str(), me->GetExactDist(pos));
+                TC_LOG_INFO("npcbots", "BOT POS: %u %u %u", me->GetPositionX(), me->GetPositionY(), me->GetPositionZ());
+            }
+            else
+            {
+                TC_LOG_DEBUG("npcbots", "Bot %s id %u class %u level %u map %u TELEPORTING to node %u ('%s') map %u, %s, dist %.1f yd!",
+                    me->GetName().c_str(), me->GetEntry(), uint32(_botclass), uint32(me->GetLevel()), me->GetMapId(), _travel_node_cur->GetWPId(),
+                    _travel_node_cur->GetName().c_str(), uint32(mapid), pos.ToString().c_str(), me->GetExactDist(pos));
+
+            }
 
             evadeDelayTimer = 12000;
             me->CastSpell(me, WANDERER_HEARTHSTONE);
