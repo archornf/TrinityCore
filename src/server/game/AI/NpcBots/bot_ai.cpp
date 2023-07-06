@@ -17654,7 +17654,7 @@ void bot_ai::Evade()
                 TC_LOG_ERROR("npcbots", "BLADE'S EDGE BUG! Bot %s id %u class %u level %u map %u TELEPORTING to node %u ('%s') map %u, %s, dist %.1f yd!",
                     me->GetName().c_str(), me->GetEntry(), uint32(_botclass), uint32(me->GetLevel()), me->GetMapId(), _travel_node_cur->GetWPId(),
                     _travel_node_cur->GetName().c_str(), uint32(mapid), pos.ToString().c_str(), me->GetExactDist(pos));
-                TC_LOG_INFO("npcbots", "BOT POS: %u %u %u", me->GetPositionX(), me->GetPositionY(), me->GetPositionZ());
+                TC_LOG_INFO("npcbots", "BOT POS: %u %u %u", uint32(me->GetPositionX()), uint32(me->GetPositionY()), uint32(me->GetPositionZ()));
             }
             else
             {
