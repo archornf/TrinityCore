@@ -17647,9 +17647,9 @@ void bot_ai::Evade()
         if (mapid != me->GetMap()->GetId() || _evadeCount >= 50 || me->GetExactDist2d(pos) > MAX_WANDER_NODE_DISTANCE ||
             me->GetPositionZ() <= INVALID_HEIGHT || (me->GetExactDist2d(pos) < 20.0f && me->GetExactDist(pos) > 100.0f)
             // HEHE: fix blade's edge
-            || (curr_zone == 3522 && me->GetPositionZ() > 310))
+            || (curr_zone == 3522 && me->GetPositionZ() > 290))
         {
-            if ((curr_zone == 3522 && me->GetPositionZ() > 310))
+            if ((curr_zone == 3522 && me->GetPositionZ() > 290))
             {
                 TC_LOG_ERROR("npcbots", "BLADE'S EDGE BUG! Bot %s id %u class %u level %u map %u TELEPORTING to node %u ('%s') map %u, %s, dist %.1f yd!",
                     me->GetName().c_str(), me->GetEntry(), uint32(_botclass), uint32(me->GetLevel()), me->GetMapId(), _travel_node_cur->GetWPId(),
