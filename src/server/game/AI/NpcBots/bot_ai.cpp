@@ -47,9 +47,6 @@
 
 #include "G3DPosition.hpp"
 
-// HEHE: filestream
-#include <fstream>
-
 /*
 NpcBot System by Trickerer (https://github.com/trickerer/Trinity-Bots; onlysuffering@gmail.com)
 Version 5.2.77a
@@ -571,6 +568,9 @@ void bot_ai::ResetBotAI(uint8 resetType)
     _botCommandState = 0;
     _botAwaitState = BOT_AWAIT_NONE;
     _reviveTimer = 0;
+    // HEHE: stuckTimer
+    _stuckTimer = urand(3600000, 3800000); // Reset to ~1 Hour
+    stuckWpId = 0;
 
     master = reinterpret_cast<Player*>(me);
     if (resetType & BOTAI_RESET_MASK_ABANDON_MASTER)
@@ -17504,6 +17504,26 @@ void bot_ai::CommonTimers(uint32 diff)
     if (IAmFree())
         UpdateReviveTimer(diff);
 
+    // HEHE: stucktimer
+    if (IsWanderer()) {
+        if (!stuckWpId)
+            stuckWpId = 0;
+        if (_stuckTimer > diff)        _stuckTimer -= diff;
+        else {
+            if (stuckWpId == 0 && _travel_node_cur->GetWPId())
+                stuckWpId = _travel_node_cur->GetWPId();
+            else {
+                if (stuckWpId == _travel_node_cur->GetWPId()) {
+                    TC_LOG_ERROR("server.loading", "Bot stuck! Bot %s id %u stuckWpId: %u TELEPORTING to node %u ('%s')",
+                        me->GetName().c_str(), me->GetEntry(), stuckWpId, _travel_node_cur->GetWPId(), _travel_node_cur->GetName().c_str());
+                    stuckWpId = _travel_node_cur->GetWPId();
+                    me->CastSpell(me, WANDERER_HEARTHSTONE);
+                }
+            }
+            _stuckTimer = urand(7200000, 7400000); // Reset to ~2 hours
+        }
+    }
+
     if (me->IsInWorld())
     {
         if (_wmoAreaUpdateTimer > diff) _wmoAreaUpdateTimer -= diff;
@@ -17651,17 +17671,16 @@ void bot_ai::Evade()
         {
             if ((curr_zone == 3522 && me->GetPositionZ() > 290))
             {
-                TC_LOG_ERROR("npcbots", "BLADE'S EDGE BUG! Bot %s id %u class %u level %u map %u TELEPORTING to node %u ('%s') map %u, %s, dist %.1f yd!",
+                TC_LOG_ERROR("npcbots", "Bot has invalid height in Blade's Edge! Bot %s id %u class %u level %u map %u TELEPORTING to node %u ('%s') map %u, %s, dist %.1f yd!",
                     me->GetName().c_str(), me->GetEntry(), uint32(_botclass), uint32(me->GetLevel()), me->GetMapId(), _travel_node_cur->GetWPId(),
                     _travel_node_cur->GetName().c_str(), uint32(mapid), pos.ToString().c_str(), me->GetExactDist(pos));
-                TC_LOG_INFO("npcbots", "BOT POS: %u %u %u", uint32(me->GetPositionX()), uint32(me->GetPositionY()), uint32(me->GetPositionZ()));
+                TC_LOG_INFO("npcbots", "BOT POS: %f %f %f", me->GetPositionX(), me->GetPositionY(), me->GetPositionZ());
             }
             else
             {
                 TC_LOG_DEBUG("npcbots", "Bot %s id %u class %u level %u map %u TELEPORTING to node %u ('%s') map %u, %s, dist %.1f yd!",
                     me->GetName().c_str(), me->GetEntry(), uint32(_botclass), uint32(me->GetLevel()), me->GetMapId(), _travel_node_cur->GetWPId(),
                     _travel_node_cur->GetName().c_str(), uint32(mapid), pos.ToString().c_str(), me->GetExactDist(pos));
-
             }
 
             evadeDelayTimer = 12000;
@@ -17731,13 +17750,18 @@ void bot_ai::Evade()
 
                 WanderNode const* nextNode = GetNextTravelNode(&pos, false);
 
-                // HEHE: Write position to file
-                std::ofstream outfile;
-                //outfile.open("./wander_nodes_data/wander_nodes_all.txt", std::ios_base::app); // append instead of overwrite
-                std::string wander_nodes_file = "./wander_nodes_data/" + std::to_string(me->GetEntry()) + "_pos.txt";
-                outfile.open(wander_nodes_file); // Overwrite
-                outfile << "WanderNodeReached! Bot: " + std::to_string(me->GetEntry()) + ", WP: " + std::to_string(_travel_node_cur->GetWPId()) + ", pos: " + me->GetPosition().ToString() + ", zone: " + std::to_string(me->GetZoneId()) + ", map: " + std::to_string(me->GetMapId()) + ", level: " + std::to_string(me->GetLevel()) + ", name: " + me->GetName() + ", class: " + std::to_string(me->GetClass()) + + ", race: " + std::to_string(me->GetRace()) + ", gender: " + std::to_string(me->GetGender()) + "\n";
-                outfile.close();
+                // HEHE: Write position to file. Requires:
+                //#include <fstream>
+                //std::ofstream outfile;
+                //std::string wander_nodes_file = "./wander_nodes_data/" + std::to_string(me->GetEntry()) + "_pos.txt";
+                //outfile.open(wander_nodes_file); // Overwrite
+                //outfile << "WanderNodeReached! Bot: " + std::to_string(me->GetEntry()) + ", WP: " + std::to_string(_travel_node_cur->GetWPId()) + ", pos: " + me->GetPosition().ToString() + ", zone: " + std::to_string(me->GetZoneId()) + ", map: " + std::to_string(me->GetMapId()) + ", level: " + std::to_string(me->GetLevel()) + ", name: " + me->GetName() + ", class: " + std::to_string(me->GetClass()) + + ", race: " + std::to_string(me->GetRace()) + ", gender: " + std::to_string(me->GetGender()) + "\n";
+                //outfile.close();
+                // Write to DB
+                //CharacterDatabase.DirectPExecute("UPDATE characters_playermap SET account=%u,name=\"%s\",class=%u,race=%u,level=%u,gender=%u,position_x=%f,position_y=%f,map=%u,zone=%u,extra_flags=64,online=1,taximask='',innTriggerId=1 where guid = %u",
+                //        1,me->GetName(),me->GetClass(),me->GetRace(),me->GetLevel(),me->GetGender(),me->GetPositionX(),me->GetPositionY(),me->GetMapId(),me->GetZoneId(),me->GetEntry());
+                CharacterDatabase.DirectPExecute("UPDATE characters_playermap SET level=%u,gender=%u,position_x=%f,position_y=%f,map=%u,zone=%u where guid = %u",
+                        me->GetLevel(),me->GetGender(),me->GetPositionX(),me->GetPositionY(),me->GetMapId(),me->GetZoneId(),me->GetEntry());
 
                 if (!nextNode)
                 {
