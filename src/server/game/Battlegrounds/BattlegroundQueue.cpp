@@ -313,7 +313,7 @@ GroupQueueInfo* BattlegroundQueue::AddBotAsGroup(ObjectGuid guid, uint32 team, B
     if (ginfo->Team == HORDE)
         index++;
 
-    TC_LOG_DEBUG("npcbots", "Adding NPCBot %u to BattlegroundQueue bgTypeId : %u, bracket_id : %u, index : %u", guid.GetEntry(), BgTypeId, bracketId, index);
+    //TC_LOG_DEBUG("npcbots", "Adding NPCBot %u to BattlegroundQueue bgTypeId : %u, bracket_id : %u, index : %u", guid.GetEntry(), BgTypeId, bracketId, index);
 
     uint32 lastOnlineTime = GameTime::GetGameTimeMS();
 

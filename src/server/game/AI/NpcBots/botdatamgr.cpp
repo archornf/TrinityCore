@@ -165,8 +165,9 @@ void SpawnWandererBot(uint32 bot_id, WanderNode const* spawnLoc, NpcBotRegistry*
     //outfile << "Spawning wandering bot! Bot: " + std::to_string(bot_id) + ", WP: " + spawnLoc->ToString() + ", name: " + spawnLoc->GetName() + "\n";
     //outfile.close();
     // Write to DB
-    CharacterDatabase.DirectPExecute("INSERT INTO characters_playermap (guid,account,name,class,race,level,gender,position_x,position_y,map,zone,extra_flags,online,taximask,innTriggerId) VALUES (%u,1,\"%s\",%u,%u,%u,%u,%f,%f,%u,%u,64,1,'',1)",
-            bot_id,bot_template.Name.c_str(),bot_extras->bclass,bot_extras->race,0,1,spawnLoc->m_positionX,spawnLoc->m_positionY,spawnLoc->GetMapId(),spawnLoc->GetZoneId());
+    if (map->GetEntry()->IsContinent())
+        CharacterDatabase.DirectPExecute("INSERT INTO characters_playermap (guid,account,name,class,race,level,gender,position_x,position_y,map,zone,extra_flags,online,taximask,innTriggerId) VALUES (%u,1,\"%s\",%u,%u,%u,%u,%f,%f,%u,%u,64,1,'',1)",
+                bot_id,bot_template.Name.c_str(),bot_extras->bclass,bot_extras->race,0,1,spawnLoc->m_positionX,spawnLoc->m_positionY,spawnLoc->GetMapId(),spawnLoc->GetZoneId());
 
     Creature* bot = new Creature();
     if (!bot->LoadBotCreatureFromDB(0, map, true, true, bot_id, &spawnPos))

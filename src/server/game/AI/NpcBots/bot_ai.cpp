@@ -17758,10 +17758,11 @@ void bot_ai::Evade()
                 //outfile << "WanderNodeReached! Bot: " + std::to_string(me->GetEntry()) + ", WP: " + std::to_string(_travel_node_cur->GetWPId()) + ", pos: " + me->GetPosition().ToString() + ", zone: " + std::to_string(me->GetZoneId()) + ", map: " + std::to_string(me->GetMapId()) + ", level: " + std::to_string(me->GetLevel()) + ", name: " + me->GetName() + ", class: " + std::to_string(me->GetClass()) + + ", race: " + std::to_string(me->GetRace()) + ", gender: " + std::to_string(me->GetGender()) + "\n";
                 //outfile.close();
                 // Write to DB
-                //CharacterDatabase.DirectPExecute("UPDATE characters_playermap SET account=%u,name=\"%s\",class=%u,race=%u,level=%u,gender=%u,position_x=%f,position_y=%f,map=%u,zone=%u,extra_flags=64,online=1,taximask='',innTriggerId=1 where guid = %u",
-                //        1,me->GetName(),me->GetClass(),me->GetRace(),me->GetLevel(),me->GetGender(),me->GetPositionX(),me->GetPositionY(),me->GetMapId(),me->GetZoneId(),me->GetEntry());
-                CharacterDatabase.DirectPExecute("UPDATE characters_playermap SET level=%u,gender=%u,position_x=%f,position_y=%f,map=%u,zone=%u where guid = %u",
-                        me->GetLevel(),me->GetGender(),me->GetPositionX(),me->GetPositionY(),me->GetMapId(),me->GetZoneId(),me->GetEntry());
+                if (me->GetMap()->GetEntry()->IsContinent())
+                    //CharacterDatabase.DirectPExecute("UPDATE characters_playermap SET account=%u,name=\"%s\",class=%u,race=%u,level=%u,gender=%u,position_x=%f,position_y=%f,map=%u,zone=%u,extra_flags=64,online=1,taximask='',innTriggerId=1 where guid = %u",
+                    //        1,me->GetName(),me->GetClass(),me->GetRace(),me->GetLevel(),me->GetGender(),me->GetPositionX(),me->GetPositionY(),me->GetMapId(),me->GetZoneId(),me->GetEntry());
+                    CharacterDatabase.DirectPExecute("UPDATE characters_playermap SET level=%u,gender=%u,position_x=%f,position_y=%f,map=%u,zone=%u where guid = %u",
+                            me->GetLevel(),me->GetGender(),me->GetPositionX(),me->GetPositionY(),me->GetMapId(),me->GetZoneId(),me->GetEntry());
 
                 if (!nextNode)
                 {
